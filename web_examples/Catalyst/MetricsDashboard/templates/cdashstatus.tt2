@@ -1,0 +1,253 @@
+[% # see this "chomping" in your browser because HTML ignores blank lines, but  -%]
+[% # it WILL eliminate a blank line if you view the HTML source.  It's purely   -%]
+[%- # optional, but both the beginning and the ending TT tags support chomping. -%]
+    
+[%# USE Dumper %]
+
+[% # Provide a title to root/lib/site/header -%]
+[% META title = 'Capacity Status' -%]
+
+<table border='0' width='100%' class='breadcrumbpad">
+<tr>
+  <td colspan='6' align='left' class='breadcrumb'><h2>&nbsp;&nbsp;&nbsp;&nbsp;Vertica Dashboard - Capacity Status</h2></td>
+</tr>
+</table>
+
+<p></p>
+
+[% INCLUDE objects/vdashtabs.tt2 %]
+[% INCLUDE objects/progress4capacity title="Template" %]
+[%# INCLUDE objects/progress title="Template" %]
+
+<div class="divider"></div>
+
+<p></p>
+<div align='center' class='error'>[% error %]</div>
+<p></p>
+
+<div class='clickaction'>
+	[% INCLUDE objects/threshlegend title="Threshold Legend" %]
+<div id='showallterr'     class='showhide' title='Shows only overall stats'>Show Datacentres</div>
+<div id='toggleallterr'   class='showhide' title='Shows/Hides previous selections' >Toggle Selections</div>
+<br />
+<div id='showallcapstats' class='showhide' title='Shows/Hides all stats'>Expand All</div>
+<br />
+<div id='showhelp' class='capstatshelp' title='Shows/Hides Help'>Help</div>
+</div>
+
+<div class='showhelp' >
+	[% INCLUDE objects/capstatshelp title= 'Capacity Status help' %]
+</div>
+
+	[% FOREACH terr IN territory_stats.keys.sort %]
+	
+	    <fieldset class='terrfieldset' >
+		<legend class='showterr terrlegend'>[% terr %]</legend>
+
+		<div class="terrstats showall" >
+	
+			[% terr_datacentres = territory_stats.$terr.anchors %]
+			[% childassettypeid = 3 %]
+			[% 
+   				anchortype  = anchortype_info.$childassettypeid.anchortype;
+   				assettype   = anchortype_info.$childassettypeid.assettype;
+   				assetlabel  = anchortype_info.$childassettypeid.assetlabel;
+ 			%]
+
+
+	    		[% IF terr_datacentres.size < 1 %]
+				<tr>
+	    			<td colspan="16" >No datacentres in this region yet</td>
+				</tr>
+	    		
+	    		[% ELSE %]
+
+				<table class="capstatstable" >
+
+	    				[%# ================ table for dc stats display ================== %]
+	    				[%# ============================================================== %]
+	    				[% FOREACH anchor IN terr_datacentres %]
+
+						[%# Dumper.dump_html(dc) %]
+
+						[%# datacentre stats %]
+						[%# ================ %]
+						[% INCLUDE objects/capstatsinc title="Datacentre Statistics" %]	
+
+
+	    				[% END %]
+	    				[%# =========== end of  table for dc stats display =============== %]
+	    				[%# ============================================================== %]
+	    			
+				</table>
+
+			[% END %]
+	
+		</div>
+	
+	    </fieldset>
+	    <br />
+	
+	[% END %]
+
+
+</div>
+
+<p></p>
+<br><br>
+
+<!-- =============================================================================================== -->
+
+[%# popup window for setting thresholds 
+======================================= %]
+
+<div id='threshpopup' >
+	<div class='ui-widget' >
+	
+	<form id='threshold_form' action='/capacity/set_thresholds' method='post' >
+
+		<input id='thresh_assettypeid'  type='hidden' name='thresh_assettypeid' value='' >
+		<input id='thresh_anchorid' 	type='hidden' name='thresh_anchorid' value='' >
+		<input id='thresh_anchormodel'  type='hidden' name='thresh_anchormodel' value='' >
+		<input id='thresh_metricid'     type='hidden' name='thresh_metricid' value='' >
+		<input id='thresh_metrictype'   type='hidden' name='thresh_metrictype' value='' >
+		<input id='thresh_periodname'   type='hidden' name='thresh_periodname' value='' >
+		<input id='thresh_set2default'  type='hidden' name='thresh_set2default' value='0' >
+		
+		<input id='orig_current_orange_peak' type='hidden' name='orig_current_orange_peak' value='' >
+		<input id='orig_current_orange_95th' type='hidden' name='orig_current_orange_95th' value='' >
+		<input id='orig_current_red_peak' type='hidden' name='orig_current_red_peak' value='' >
+		<input id='orig_current_red_95th' type='hidden' name='orig_current_red_95th' value='' >
+	
+		<input id='orig_default_orange_peak' type='hidden' name='orig_default_orange_peak' value='' >
+		<input id='orig_default_orange_95th' type='hidden' name='orig_default_orange_95th' value='' >
+		<input id='orig_default_red_peak' type='hidden' name='orig_default_red_peak' value='' >
+		<input id='orig_default_red_95th' type='hidden' name='orig_default_red_95th' value='' >
+	
+	
+		<div class='threshbox' >
+		<table style='width: 100%;' class='threshdata'>
+			<tr class='currentthreshbox threshdata'>
+				<td id='thresh_title' colspan='3' class='threshtitle' ></td>
+			</tr>
+			<tr>
+			<td colspan='3'></td>
+			</tr>
+			<tr class='threshdata'>
+				<td class='threshmetric' ></td>
+				<td class='threshmetric' >Peak</td>
+				<td class='threshmetric' >95th Percentile</td>
+			</tr>
+			<tr>
+			<td colspan='3'></td>
+			</tr>
+
+			<tr class='currentthreshbox'>
+			</tr>
+			<tr class='currentthreshbox threshdata'>
+				<td class='threshlabel' nowrap>Current Orange Threshold: </td>
+				<td class='threshvalue' >
+					<input type='text' id='current_orange_peak' 
+							   name='current_orange_peak' 
+							   class='thresh2set threshvalue' size='15' value='' 
+							   [% IF ! thresh_update_allowed %]readonly[% END %]
+					>
+				</td>
+				<td>
+					<input type='text' id='current_orange_95th' 
+							   name='current_orange_95th' 
+							   class='thresh2set threshvalue' size='15' value='' 
+							   [% IF ! thresh_update_allowed %]readonly[% END %]
+					>
+				</td>
+			</tr>
+			<tr class='currentthreshbox threshdata'>
+				<td class='threshlabel' nowrap>Current Red Threshold: </td>
+				<td class='threshvalue' >
+					<input type='text' id='current_red_peak' 
+							   name='current_red_peak' 
+							   class='thresh2set threshvalue' size='15' value='' 
+							   [% IF ! thresh_update_allowed %]readonly[% END %]
+				>
+				</td>
+				<td>
+					<input type='text' id='current_red_95th' 
+							   name='current_red_95th' 
+							   class='thresh2set threshvalue' size='15' value='' 
+							   [% IF ! thresh_update_allowed %]readonly[% END %]
+					>
+				</td>
+			</tr>
+	
+			<tr class='defaultthreshbox threshdata'>
+				<td class='threshlabel' nowrap>Default Orange Threshold: </td>
+				<td class='threshvalue' >
+					<input type='text' id='default_orange_peak' 
+							   name='default_orange_peak' 
+							   class='thresh2set threshvalue' size='15' value='' 
+							   [% IF ! thresh_update_allowed %]readonly[% END %]
+					>
+				</td>
+				<td>
+					<input type='text' id='default_orange_95th' 
+							   name='default_orange_95th' 
+							   class='thresh2set threshvalue' size='15' value='' 
+							   [% IF ! thresh_update_allowed %]readonly[% END %]
+					>
+				</td>
+			</tr>
+			<tr class='defaultthreshbox threshdata'>
+				<td class='threshlabel' nowrap>Default Red Threshold: </td>
+				<td class='threshvalue' >
+					<input type='text' id='default_red_peak' 
+							   name='default_red_peak' 
+							   class='threshvalue' size='15' value='' 
+							   [% IF ! thresh_update_allowed %]readonly[% END %]
+					>
+				<td>
+					<input type='text' id='default_red_95th' 
+							   name='default_red_95th' 
+							   class='thresh2set threshvalue' size='15' value='' 
+							   [% IF ! thresh_update_allowed %]readonly[% END %]
+					>
+				</td>
+			</tr>
+			<tr>	
+				<td colspan='3' >
+				<table class='threshbutton' >
+					<tr class='threshbutton' >
+						<td width='150px'>
+							<div class='threshcheck'>
+							[% IF ! thresh_update_allowed %]
+								<span id='thresh2def_info'></span>
+							[% ELSE %]
+								Automatically update<br />to Default thresholds
+								<input 	type='checkbox' id='thresh2def' name='thresh2def' 
+									class='threshcheckbox' 
+								/> 
+							[% END %]
+							</div>
+							
+						</td>
+						<td width='150px'>
+							<input 	type='submit' name='threshupdate' 
+								value='Update' 
+							   	class='threshbutton' 
+							[% IF ! thresh_update_allowed %]disabled[% END %]
+							>
+						</td>
+					</tr>
+	
+				</table>
+	
+				</td>
+			</tr>
+		</table>
+		</div>
+		
+	</form>
+	
+	</div>
+</div>
+
+<!-- =============================================================================================== -->

@@ -1,0 +1,24 @@
+# Config file for reporting on OOS servers
+# ########################################
+
+---
+cmdb:   
+	host:    ....
+	user:    ....
+	dbd:     mysql
+	db:      ....
+	connect: 
+
+XML_LB:   
+	user:     ....
+	sequence: 
+
+readcomm:        
+sysOID:          9.9.9.9.9.9.9.9.9.
+
+email:
+        smtp:    ....
+        from:    ....
+        to:      ....
+        subject: XXX Server Report
+

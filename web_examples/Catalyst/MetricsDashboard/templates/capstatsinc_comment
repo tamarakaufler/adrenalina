@@ -1,0 +1,85 @@
+
+[%#  table for displaying comments for Capacity Status anchors %]
+[%# ---------------------------------------------------------- %]
+
+<form>
+
+[%# Dumper.dump_html(comment) %]
+
+[% commentid 	  = comment.id %]
+[% titleid 	  = comment.title.0 %]
+[% titletext 	  = comment.title.1 %]
+[% throughput_sum = comment.throughput_sum %]
+
+<table class='commttable commttable_[% childassettypeid %]' >
+
+	<input type='hidden' id='orig_title_[% titleid %]' value='[% titletext %]' >
+
+	<tr class='commttr commttitle' >
+		<td class='commenticon [% IF comment_update_allowed %]showcomment[% END %]' commentid='[% commentid %]'>
+			<img src='/static/images/expand_20x20.png' title="Show all comments" 
+			     alt='Show all comments' />
+		</td>
+		<td class='commenticon [% IF comment_update_allowed %]revertcomment[% END %]' which='title' whichid=[% titleid %] >
+				<img src='/static/images/undo_15x15.png' title='Revert title' 
+				     alt='Revert title'/></td>
+		</td>
+		<td class='commenticon [% IF comment_update_allowed %]savetitle[% END %]'   titleid=[% titleid %] >
+				<img src='/static/images/save_15x15.png' title='Save title' 
+				     alt='Save title'/>
+		</td>
+		<td class='commttitletd' >
+			<input id='commttitle_[% titleid %]' type='textarea' class='commttitle' 
+			       cols='30' rows='4'
+			       titleid=[% titleid %] 
+			       value='[% IF comment_update_allowed %][% titletext %][% END %]' />
+		</td>
+		<td class='throughputtd throughputsum' ><input id='throughput_sum_[% commentid %]' class='throughput' value='[% IF comment_update_allowed %][% throughput_sum || '' %][% END %]' disabled ></td>
+	</tr>
+
+	[% IF comment_update_allowed %]
+		[% FOREACH detail IN comment.details %] 
+			[% detailid    	  = detail.0 %]
+			[% customer    	  = detail.1 %]
+			[% throughput     = detail.2 %]
+			<tr id='commtdetail_[% detailid %]' class='[% assettype %]commt_[% commentanchorid %] commtdetail commtdetail_[% commentid %]' 
+			    detailid='[% detailid %]' style='display: table-row' >
+				<input type='hidden' id='orig_customer_[% detailid %]'   class='orig_customer' 
+						     value='[% customer %]' >
+				<input type='hidden' id='orig_throughput_[% detailid %]' class='orig_throughput' 
+						     value='[% throughput %]' >
+	
+				<td class='commenticon deletecomment' detailid='[% detailid %]' commentid='[% commentid %]' tempid='' >
+					<img src='/static/images/minus_15x15.png' title='Delete comment' 
+					     alt='Delete comment' /></td>
+	
+				<td class='commenticon revertcomment' which='detail' whichid='[% detailid %]' >
+					<img src='/static/images/undo_15x15.png' title='Revert comment'
+					     alt='Revert comment' /></td>
+	
+				<td class='commenticon savedetail' detailid='[% detailid %]' commentid='[% commentid %]' tempid='' >
+					<img src='/static/images/save_15x15.png' title='Save comment' 
+				     	     alt='Save comment' /></td>
+	
+				<td class='customertd'>
+					<input id='commtcustomer_[% detailid %]' type='text' 
+					       class='commtcustomer commtcustomer_[% commentid %]' maxlength='100' 
+					       value='[% customer %]' />
+				</td>
+				<td class='throughputtd' >
+					<input id='commtthroughput_[% detailid %]' type='text' 
+					       class='throughput commtthroughput_[% commentid %]' maxlength='6' 
+					       value='[% throughput %]' />
+				</td>
+			</tr>
+		[% END %]  
+		<tr class='addcomment'  style='display: table-row' >
+			<td class='addcomment' colspan='5'   commentid='[% commentid %]' 
+			    anchorid='[% commentanchorid %]' assettype='[% assettype %]' >
+				<img src='/static/images/add_25x25.png' title='Add comment' 
+				     alt='Add comment' />
+			</td>
+		</tr>
+	[% END %]  
+</table>
+</form>

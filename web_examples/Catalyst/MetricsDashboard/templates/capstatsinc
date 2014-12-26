@@ -1,0 +1,193 @@
+
+[%# =================== %]
+[%# DC name and headers %]
+[%# =================== %]
+
+[% USE Dumper %]
+
+[% anchorid = anchor.anchorid %]
+
+[%# Datacentre name and stats period times %]
+[%#----------------------------------------%]
+
+[%# PERIOD_HEADER ROW %]
+[%# ================= %]
+[% IF childassettypeid == 3 %]
+	<tr class="[% anchortype %]summary" style='display: table-row;'>
+		 <td id='[% anchortype %]name_[% anchor.anchorid %]' 
+		     class='columnheader anchorname [% anchortype %]name' 
+	    	     anchortype="[% anchortype %]" anchorid="[% anchor.anchorid %]" >
+			[% anchor.anchorname %]
+		 </td>
+
+		 [% FOREACH period_header IN period_headers %]
+		    	<td class='columnvalue periodheader' >[% period_header %]</td>
+		 [% END %]
+
+		 <td></td>
+
+	</tr>
+[% END %]
+
+
+[%# STATS ROW %]
+[%# ========= %]
+
+[%# CORE SWITCH/FIREWALL/LOGTOWER name and stats %]
+[%#==============================================%]
+
+[%#------------------------------------------------------------------------------------------------------- %]
+[%# ===> STATS SUMMARY <=== %]
+[%# ======================= %]
+
+[% summary_stats = anchor.stats.summary %]
+
+<tr class="[% anchortype %]summary" style='display: table-row;'>
+	<td class='statsdetails columnheader statsinfofield [% assettype %]name' 
+	    anchorid="[% anchor.anchorid %]" assettype="[% assettype %]" >
+		CORE SWITCH ([% assets_stats_info.$childassettypeid.0.units %]) 
+	</td>
+
+	[% multiply = assets_stats_info.$childassettypeid.0.multiply %]
+
+	[% period_i = 0 %]
+	[% FOREACH pstats IN summary_stats %]
+		<td class='columnvalue statsinfo [% anchortype %]summarystats showthresh threshcolour[% pstats.2 %] traffic_[% assettype %]_[% anchorid %] ' 
+		     	    title='Peak value for Summary for [% period_headers.$period_i %]'
+			    assettypeid='[% childassettypeid %]' anchorid='[% anchorid %]' 
+			    metricid='1' metrictype='peak' metricname='Summary' 
+			    anchorname='[% anchor.anchorname %]'
+			    anchormodel='[% anchor.anchormodel %]'
+			    periodname='[% period_headers.$period_i %]' >[% IF pstats.0 == 'N/A'; pstats.0; ELSE; PROCESS csw_info value=pstats.0; END %]</td>
+
+		[% period_i = period_i + 1 %]
+	[% END %]
+
+	[% comment 	   = anchor.comment %]
+	[% commentanchorid = anchorid %]
+
+	<td class='csdcomment csdcomment_[% assettype %]' rowspan='2' >
+		[% INCLUDE objects/capstatsinc_comment %]
+	</td>
+
+</tr>
+<tr class="[% anchortype %]summary" style='display: table-row;'>
+	<td></td>
+
+	[% period_i = 0 %]
+	[% FOREACH pstats IN summary_stats %]
+		<td class='columnvalue statsinfo [% anchortype %]summarystats showthresh threshcolour[% pstats.3 %] traffic_[% assettype %]_[% anchorid %] ' 
+		     	    title='95th percentile value for Summary for [% period_headers.$period_i %]'
+			    assettypeid='[% childassettypeid %]' anchorid='[% anchorid %]' 
+			    metricid='1' metrictype='95th' metricname='Summary' 
+			    anchorname='[% anchor.anchorname %]'
+			    anchormodel='[% anchor.anchormodel %]'
+			    periodname='[% period_headers.$period_i %]' >[% IF pstats.1 == 'N/A'; pstats.1; ELSE; PROCESS csw_info value=pstats.1; END %]</td>
+		[% period_i = period_i + 1 %]
+	[% END %]
+
+</tr>
+[%#------------------------------------------------------------------------------------------------------- %]
+
+[%# ===> STATS BREAKDOWN <=== %]
+[%# ========================= %]
+	
+[% all_stats = anchor.stats.all %]
+
+[% index = 0 %]
+[% FOREACH this_stats IN all_stats %]
+
+	[% units    = assets_stats_info.$childassettypeid.$index.units %]
+	[% multiply = assets_stats_info.$childassettypeid.$index.multiply %]
+
+	[% IF index == 2 %]
+		<tr><td colspan='[% period_headers.size + 2 %]' ></td></tr>
+	[% END %]
+
+	<tr class="showall [% anchortype %]stats_[% anchor.anchorid %] [% assettype %]stats_[% anchor.anchorid %]" 
+	    style="display: table-row;" >
+		<td class='statsinfofield statsname' >[% assets_stats_info.$childassettypeid.$index.metric_name %] (<span class='units'>[% units %]</span>)</td>
+
+		[% period_i = 0  %]
+		[% FOREACH pstats IN this_stats %]
+			<td class='columnvalue statsinfo detailstats showthresh threshcolour[% pstats.2 %] traffic_[% assettype %]_[% anchorid %] ' 
+		     	    title='Peak value for [% assets_stats_info.$childassettypeid.$index.metric_name %] for [% period_headers.$period_i %]'
+			    assettypeid='[% childassettypeid %]' anchorid='[% anchorid %]' 
+			    metricid='[% assets_stats_info.$childassettypeid.$index.metric_id %]' 
+			    metrictype='peak' 
+			    metricname='[% assets_stats_info.$childassettypeid.$index.metric_name %]' 
+			    anchorname='[% anchor.anchorname %]'
+			    anchormodel='[% anchor.anchormodel %]'
+			    periodname='[% period_headers.$period_i %]' >[% IF pstats.0 == 'N/A'; pstats.0; ELSE; PROCESS csw_info value=pstats.0; END %]</td>
+			[% period_i = period_i + 1  %]
+		[% END %]
+
+		<td></td>
+
+	</tr>
+	<tr class="showall [% anchortype %]stats_[% anchor.anchorid %] [% assettype %]stats_[% anchor.anchorid %]"
+		style="display: table-row;" >
+		<td></td>
+
+		[% period_i = 0  %]
+		[% FOREACH pstats IN this_stats %]
+			<td class='columnvalue statsinfo detailstats showthresh threshcolour[% pstats.3 %] traffic_[% assettype %]_[% anchorid %]' 
+		     	    title='95th value for [% assets_stats_info.$childassettypeid.$index.metric_name %] for [% period_headers.$period_i %]'
+			    assettypeid='[% childassettypeid %]' anchorid='[% anchorid %]' 
+			    metricid='[% assets_stats_info.$childassettypeid.$index.metric_id %]' 
+			    metrictype='95th' 
+			    metricname='[% assets_stats_info.$childassettypeid.$index.metric_name %]' 
+			    anchorname='[% anchor.anchorname %]'
+			    anchormodel='[% anchor.anchormodel %]'
+			    periodname='[% period_headers.$period_i %]' >[% IF pstats.1 == 'N/A'; pstats.1; ELSE; PROCESS csw_info value=pstats.1; END %]</td>
+			[% period_i = period_i + 1  %]
+		[% END %]
+
+		<td></td>
+
+	</tr>
+	[% index = index + 1 %]
+[% END %]
+
+[%# Drill Statistics (Midtowers) %]
+[%#=============================================%]
+
+[% childassettypeid = anchor.childassettypeid %]
+[% 
+      anchortype  = anchortype_info.$childassettypeid.anchortype;
+      assettype   = anchortype_info.$childassettypeid.assettype;
+      assetlabel  = anchortype_info.$childassettypeid.assetlabel;
+ %]
+
+[%# Container for the Midtower/firewall stats %]
+[%#===========================================%]
+
+[% afw_anchors       = anchor.anchors %]
+[% afw_anchors_names = anchor.anchornames %]
+
+[% IF afw_anchors.size < 1 %]
+
+	<tr class="showall" >
+		<td colspan="[% period_headers.size + 2 %]" >No FIREWALLS yet</td>
+	</tr>
+    
+[% ELSE %]
+
+    	[%# ================ table for drill stats display ================== %]
+    	[%# ================================================================= %]
+	[% afw_index = 0 %]
+    	[% FOREACH afw_anchor IN afw_anchors %]
+
+		[%# datacentre stats %]
+		[%# ================ %]
+		[% INCLUDE objects/capstatsinc4afw title="$assetlabel Statistics" %]	
+		<tr><td colspan='[% period_headers.size + 2 %]' ></td></tr>
+		[% afw_index = afw_index + 1 %]
+
+    	[% END %]
+    	[%# =========== end of  table for drill stats display =============== %]
+    	[%# ================================================================= %]
+
+[% END %]
+
+[% BLOCK csw_info %][% (value * multiply)  FILTER format("%.2f") %][% END %]
